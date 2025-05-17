@@ -2,224 +2,380 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SISTEMA INFECTADO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>⚠️ ALERTA DE SEGURANÇA ⚠️</title>
     <style>
-        body {
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
             overflow: hidden;
-            background: black;
-            color: red;
-            font-family: monospace;
+            background: #000;
+            color: #ff0000;
+            font-family: 'Courier New', monospace;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            width: 100vw;
             user-select: none;
             touch-action: none;
-        }
-        #message {
-            font-size: 8vw;
-            text-align: center;
-            animation: blink 0.3s infinite, colorChange 2s infinite, shadowPulse 1s infinite;
-            text-shadow: 0 0 3vw red;
-            z-index: 10;
-            padding: 2vw;
-        }
-        #counter {
-            font-size: 4vw;
-            color: #ff4040;
             position: fixed;
-            top: 10vw;
-            z-index: 10;
+            top: 0;
+            left: 0;
         }
-        @keyframes blink {
-            50% { opacity: 0; }
+        
+        #main-message {
+            font-size: 6vw;
+            text-align: center;
+            animation: blink 0.5s infinite, colorChange 1s infinite;
+            text-shadow: 0 0 10px #ff0000;
+            z-index: 100;
+            padding: 5vw;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            margin-bottom: 5vh;
         }
-        @keyframes colorChange {
-            0% { color: red; }
-            50% { color: #ff4040; }
-            100% { color: red; }
+        
+        #status-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2vh;
+            z-index: 100;
+            width: 90%;
+            max-width: 500px;
         }
-        @keyframes shadowPulse {
-            0% { text-shadow: 0 0 3vw red; }
-            50% { text-shadow: 0 0 5vw red; }
-            100% { text-shadow: 0 0 3vw red; }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 3.5vw;
+            color: #ff5555;
         }
-        canvas {
+        
+        .status-bar {
+            height: 3vh;
+            background: #330000;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 1vh;
+        }
+        
+        .status-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff5555);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        #warning-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 0;
+            background: rgba(255, 0, 0, 0.1);
+            pointer-events: none;
+            z-index: 50;
+            animation: overlayPulse 2s infinite;
+        }
+        
+        .glitch-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #ff0000;
+            opacity: 0.3;
+            z-index: 20;
+            animation: glitchMove 5s linear infinite;
+        }
+        
+        #download-status {
+            position: fixed;
+            bottom: 10vh;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #ff0000;
+            padding: 2vw;
+            border-radius: 5px;
+            z-index: 200;
+            font-size: 3.5vw;
+            text-align: center;
+        }
+        
+        #play-button {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            padding: 10px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.7; }
+        }
+        
+        @keyframes colorChange {
+            0% { color: #ff0000; }
+            50% { color: #ff5555; }
+            100% { color: #ff0000; }
+        }
+        
+        @keyframes overlayPulse {
+            0% { opacity: 0.1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0.1; }
+        }
+        
+        @keyframes glitchMove {
+            0% { top: 0; }
+            100% { top: 100%; }
         }
     </style>
 </head>
 <body>
-    <div id="message">SISTEMA INFECTADO! ARQUIVOS SENDO INSTALADOS!</div>
-    <div id="counter">Arquivos baixados: 0/5</div>
-    <canvas id="glitch"></canvas>
+    <div id="warning-overlay"></div>
+    
+    <div id="main-message">⚠️ SISTEMA COMPROMETIDO ⚠️</div>
+    
+    <div id="status-container">
+        <div class="status-item">
+            <span>Integridade do Sistema:</span>
+            <span id="integrity-value">24%</span>
+        </div>
+        <div class="status-bar">
+            <div class="status-progress" id="integrity-bar"></div>
+        </div>
+        
+        <div class="status-item">
+            <span>Dados Acessados:</span>
+            <span id="data-value">68%</span>
+        </div>
+        <div class="status-bar">
+            <div class="status-progress" id="data-bar"></div>
+        </div>
+        
+        <div class="status-item">
+            <span>Propagação do Vírus:</span>
+            <span id="virus-value">91%</span>
+        </div>
+        <div class="status-bar">
+            <div class="status-progress" id="virus-bar"></div>
+        </div>
+    </div>
+    
+    <div id="download-status">Iniciando download de arquivos maliciosos...</div>
+    
+    <audio id="alert-sound" loop>
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
+        Seu navegador não suporta o elemento de áudio.
+    </audio>
+    
     <script>
-        // Impedir fechamento da aba
-        window.addEventListener('beforeunload', (e) => {
-            e.preventDefault();
-            e.returnValue = 'SISTEMA COMPROMETIDO! SAIR PODE CAUSAR DANOS!';
-        });
-
-        // Bloquear interações
-        document.addEventListener('keydown', (e) => e.preventDefault());
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
-        document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
-
-        // Tentar manter o foco na janela
-        window.addEventListener('blur', () => {
-            window.focus();
-        });
-
-        // Tentar tela cheia
-        function requestFullscreen() {
-            const elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(() => {});
-            } else if (elem.webkitRequestFullscreen) {
-                elem.webkitRequestFullscreen().catch(() => {});
-            } else if (elem.mozRequestFullScreen) {
-                elem.mozRequestFullScreen().catch(() => {});
-            } else if (elem.msRequestFullscreen) {
-                elem.msRequestFullscreen().catch(() => {});
+        // Conteúdo dos arquivos TXT que serão baixados
+        const txtFiles = [
+            {
+                name: "senhas_roubadas.txt",
+                content: "AVISO: Seus dados de login foram comprometidos!\n\nLista de contas acessadas:\n- Email principal\n- Redes sociais\n- Aplicativos bancários\n\nNão tente modificar este arquivo!"
+            },
+            {
+                name: "dados_pessoais.txt",
+                content: "⚠️ ALERTA DE VAZAMENTO ⚠️\n\nSeus dados pessoais foram coletados:\n- Nome completo\n- Data de nascimento\n- CPF\n- Endereço\n- Contatos\n\nEste arquivo será enviado para servidores remotos."
+            },
+            {
+                name: "alerta_final.txt",
+                content: "Seu sistema foi comprometido!\n\nRecomendações:\n1. Desconecte-se da internet\n2. Execute um antivírus\n3. Altere todas as senhas\n4. Monitore suas contas"
             }
-        }
-
-        // Vibração em dispositivos móveis
-        function startVibration() {
-            if (navigator.vibrate) {
-                setInterval(() => {
-                    navigator.vibrate([50, 50, 50]);
-                }, 600);
-            }
-        }
-
-        // Efeito de fundo (glitch)
-        const canvas = document.getElementById('glitch');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        const ctx = canvas.getContext('2d');
-        function glitchEffect() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < 50; i++) {
-                ctx.fillStyle = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                ctx.fillRect(
-                    Math.random() * canvas.width,
-                    Math.random() * canvas.height,
-                    Math.random() * 40,
-                    Math.random() * 40
-                );
-            }
-            requestAnimationFrame(glitchEffect);
-        }
-        glitchEffect();
-
-        // Conteúdo personalizável dos arquivos .txt
-        const txtContents = [
-            "ERRO CRÍTICO: Seu dispositivo foi comprometido! Não desligue o sistema.",
-            "AVISO: Arquivos de sistema estão sendo modificados. Qualquer ação pode piorar a situação.",
-            "ALERTA: Dados sensíveis estão sendo expostos. Contate o suporte imediatamente.",
-            "FALHA: Sistema operacional corrompido. Reinicie em modo de segurança.",
-            "PERIGO: Malware detectado. Todos os arquivos estão em risco."
         ];
-
-        // Função para criar e baixar arquivos .txt
-        let downloadCount = 0;
+        
+        // Função para baixar arquivos TXT
         function downloadTxtFiles() {
-            txtContents.forEach((content, index) => {
-                const delay = 500 * index + Math.random() * 300 - 150; // Atraso base de 500ms ±150ms
+            let downloadedCount = 0;
+            const totalFiles = txtFiles.length;
+            const statusElement = document.getElementById('download-status');
+            
+            // Atualizar status
+            function updateStatus() {
+                statusElement.textContent = `Download de arquivos: ${downloadedCount}/${totalFiles} concluídos`;
+                
+                if (downloadedCount === totalFiles) {
+                    statusElement.textContent = "✅ Todos arquivos maliciosos foram instalados!";
+                    statusElement.style.color = "#00ff00";
+                }
+            }
+            
+            // Baixar cada arquivo com intervalo
+            txtFiles.forEach((file, index) => {
                 setTimeout(() => {
                     try {
-                        const blob = new Blob([content], { type: 'text/plain' });
+                        const blob = new Blob([file.content], { type: 'text/plain' });
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `aviso_critico_${index + 1}.txt`;
+                        a.download = file.name;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
-                        downloadCount++;
-                        document.getElementById('counter').textContent = `Arquivos baixados: ${downloadCount}/5`;
-                    } catch (e) {
-                        console.error('Erro ao baixar arquivo:', e);
+                        
+                        downloadedCount++;
+                        updateStatus();
+                        
+                        // Atualizar barra de progresso de dados
+                        const dataValue = Math.min(100, 68 + (downloadedCount * 10));
+                        document.getElementById('data-value').textContent = dataValue + '%';
+                        document.getElementById('data-bar').style.width = dataValue + '%';
+                        
+                    } catch (error) {
+                        console.error('Erro ao baixar arquivo:', error);
                     }
-                }, delay);
+                }, 3000 * index);
             });
         }
-
-        // Função para abrir 10 sites diferentes
-        function openTabs() {
-            const urls = [
-                'https://www.google.com',
-                'https://www.youtube.com',
-                'https://www.wikipedia.org',
-                'https://www.amazon.com',
-                'https://www.reddit.com',
-                'https://www.twitter.com',
-                'https://www.instagram.com',
-                'https://www.linkedin.com',
-                'https://www.netflix.com',
-                'https://www.github.com'
-            ];
-            urls.forEach((url, index) => {
-                const delay = 1000 * index + Math.random() * 500 - 250; // Atraso base de 1000ms ±250ms
-                setTimeout(() => {
-                    try {
-                        const newWindow = window.open(url, '_blank');
-                        if (!newWindow) {
-                            setTimeout(() => window.open(url, '_blank'), 3000);
-                            setTimeout(() => window.open(url, '_blank'), 6000);
-                        }
-                    } catch (e) {
-                        console.error('Erro ao abrir guia:', e);
-                    }
-                }, delay);
-            });
+        
+        // Bloquear todas as interações
+        document.addEventListener('keydown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false });
+        
+        // Impedir fechamento
+        window.addEventListener('beforeunload', (e) => {
+            e.preventDefault();
+            e.returnValue = '⚠️ ATENÇÃO: Desligar o dispositivo pode causar perda permanente de dados!';
+            return e.returnValue;
+        });
+        
+        // Atualizar barras de status
+        function updateStatus() {
+            const integrity = Math.min(100, Math.floor(Math.random() * 10 + 15));
+            const virus = Math.min(100, Math.floor(Math.random() * 10 + 85));
+            
+            document.getElementById('integrity-value').textContent = integrity + '%';
+            document.getElementById('integrity-bar').style.width = integrity + '%';
+            
+            document.getElementById('virus-value').textContent = virus + '%';
+            document.getElementById('virus-bar').style.width = virus + '%';
         }
-
-        // Iniciar ações
-        let hasStarted = false;
-        function startInfection() {
-            if (hasStarted) return;
-            hasStarted = true;
-            downloadTxtFiles();
-            openTabs();
-            requestFullscreen();
-            startVibration();
-            // Retentar downloads após 4s e 8s
-            setTimeout(downloadTxtFiles, 4000);
-            setTimeout(downloadTxtFiles, 8000);
+        
+        // Tocar som de alerta
+        function playAlertSound() {
+            const sound = document.getElementById('alert-sound');
+            sound.volume = 0.3;
+            
+            // Criar botão de play
+            const playButton = document.createElement('button');
+            playButton.id = 'play-button';
+            playButton.textContent = '▶️ ATIVAR ALERTA SONORO';
+            playButton.onclick = () => {
+                sound.play()
+                    .then(() => playButton.remove())
+                    .catch(e => {
+                        playButton.textContent = '❌ Erro ao reproduzir som';
+                        console.error('Erro ao reproduzir som:', e);
+                    });
+            };
+            
+            document.body.appendChild(playButton);
+            
+            // Tentar reproduzir automaticamente após interação
+            document.body.addEventListener('click', function firstInteraction() {
+                sound.play().catch(e => {
+                    console.log('Reprodução automática bloqueada, aguardando clique no botão');
+                });
+                document.body.removeEventListener('click', firstInteraction);
+            }, { once: true });
         }
-
-        // Simular interação para contornar restrições
-        function simulateInteraction() {
-            try {
-                const events = [
-                    new Event('click', { bubbles: true }),
-                    new Event('touchstart', { bubbles: true }),
-                    new Event('mousedown', { bubbles: true })
-                ];
-                events.forEach(event => document.dispatchEvent(event));
-            } catch (e) {
-                console.error('Erro ao simular interação:', e);
+        
+        // Vibrar o dispositivo
+        function vibrateDevice() {
+            if ('vibrate' in navigator) {
+                setInterval(() => {
+                    navigator.vibrate([100, 200, 100]);
+                }, 10000);
             }
         }
-
-        // Gatilhos para iniciar
-        document.addEventListener('click', startInfection, { once: true });
-        document.addEventListener('touchstart', startInfection, { once: true });
-
-        // Aguardar carregamento completo
-        window.addEventListener('load', () => {
-            simulateInteraction();
-            setTimeout(startInfection, 500);
+        
+        // Tentar forçar tela cheia
+        function attemptFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(() => {});
+            }
+            setTimeout(attemptFullscreen, 15000);
+        }
+        
+        // Adicionar linhas de glitch
+        function addGlitchLines() {
+            for (let i = 0; i < 10; i++) {
+                const line = document.createElement('div');
+                line.className = 'glitch-line';
+                line.style.top = Math.random() * 100 + '%';
+                line.style.animationDelay = Math.random() * 5 + 's';
+                document.body.appendChild(line);
+            }
+        }
+        
+        // Iniciar todos os efeitos
+        function startEffects() {
+            // Iniciar downloads após 2 segundos
+            setTimeout(downloadTxtFiles, 2000);
+            
+            // Outros efeitos
+            setInterval(updateStatus, 2000);
+            playAlertSound();
+            vibrateDevice();
+            attemptFullscreen();
+            addGlitchLines();
+            
+            // Adicionar mensagens aleatórias
+            const messages = [
+                "Instalando arquivos maliciosos...",
+                "Coletando dados pessoais...",
+                "Criptografando arquivos...",
+                "Preparando resgate de dados...",
+                "Conectando à rede de bots...",
+                "Seu dispositivo está sob controle"
+            ];
+            
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    const originalMessage = document.getElementById('main-message').textContent;
+                    document.getElementById('main-message').textContent = messages[Math.floor(Math.random() * messages.length)];
+                    
+                    setTimeout(() => {
+                        document.getElementById('main-message').textContent = originalMessage;
+                    }, 2000);
+                }
+            }, 5000);
+        }
+        
+        // Iniciar quando a página carregar
+        window.addEventListener('load', startEffects);
+        
+        // Tentar manter o foco na janela
+        window.addEventListener('blur', () => {
+            window.focus();
         });
     </script>
 </body>
